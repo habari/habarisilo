@@ -87,21 +87,21 @@ class HabariSilo extends Plugin implements MediaSilo
 	public function filter_token_description_display( $token )
 	{
 		$desc = array(
-			'create_directories' => _t( 'Create media silo directories' ),
-			'delete_directories' => _t( 'Delete media silo directories' ),
-			'upload_media' => _t( 'Upload files to media silos' ),
-			'delete_media' => _t( 'Delete files from media silos' ),
+		    'create_directories' => _t( 'Create media silo directories' ),
+		    'delete_directories' => _t( 'Delete media silo directories' ),
+		    'upload_media' => _t( 'Upload files to media silos' ),
+		    'delete_media' => _t( 'Delete files from media silos' ),
 		);
 		return isset( $desc[$token] ) ? $desc[$token] : $token;
 	}
 
 	/**
-	 *
-	 * @param string $file. The name of the plugin file
-	 *
-	 * Delete the special silo permissions if they're no longer
-	 * being used.
-	 */
+	*
+	* @param string $file. The name of the plugin file
+	*
+	* Delete the special silo permissions if they're no longer
+	* being used.
+	*/
 	public function action_plugin_deactivation( $file ) {
 		$silos = Plugins::get_by_interface( 'MediaSilo' );
 		if ( count( $silos ) <= 1 ) {
@@ -564,7 +564,7 @@ class HabariSilo extends Plugin implements MediaSilo
 					break;
 				case 'upload':
 					if ( isset( $_FILES['file'] ) ) {
-						// quit if tokens missing or time elapsed
+                        // quit if tokens missing or time elapsed
 						if (!isset( $_POST['token'] ) or !isset( $_POST['token_ts'] ) or false === self::verify_token( $_POST['token'], $_POST['token_ts'] )) {
 							$msg = _t( 'Suspicious behaviour or too much time has elapsed.  Please upload your file(s) again.' );
 							$panel .= '<p><strong>'.$msg.'</strong></p>';
@@ -584,11 +584,6 @@ class HabariSilo extends Plugin implements MediaSilo
 							$path .= $file_to_upload['name'];
 							$asset = new MediaAsset($path, false);
 							$asset->upload($file_to_upload);
-							/**
-							 * $panel .= '<div class="span-18" style="padding-top:30px;color: #e0e0e0;margin: 0px auto;"><p>' . _t( 'File: ' ) . $_FILES['file']['name'];
-							 * $panel .= ( $_FILES['file']['size'] > 0 ) ? "({$size})" : '';
-							 * $panel .= '</p>';
-							 */
 
 							if ($asset->put()) {
 								$msg = _t('File uploaded: %s', array($file_to_upload['name']));
@@ -647,8 +642,8 @@ function simple_uploaded_complete() {
 </script>
 UPLOAD_FORM;
 
-						$panel = sprintf( $panel, _t( "Upload to:" ), _t( "Upload" ) );
-					}
+					$panel = sprintf( $panel, _t( "Upload to:" ), _t( "Upload" ) );
+				}
 			}
 		}
 		return $panel;
@@ -665,7 +660,7 @@ UPLOAD_FORM;
 	public function mkdir_validator( $dir, $control, $form )
 	{
 		if ( strpos( $dir, '*' ) !== false || preg_match( '%(?:^|/)\.%', $dir ) ) {
-			return array( _t( "The directory name contains invalid characters: %s.", array( $dir ) ) );
+		    return array( _t( "The directory name contains invalid characters: %s.", array( $dir ) ) );
 		}
 
 		$path = preg_replace( '%\.{2,}%', '.', $form->path->value );
