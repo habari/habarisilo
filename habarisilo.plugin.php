@@ -620,23 +620,6 @@ class HabariSilo extends Plugin implements MediaSilo
 						$token = self::create_token( $token_ts );
 						$fullpath = self::SILO_NAME . '/' . $path;
 						$form_action = URL::get( 'admin_ajax', array( 'context' => 'media_upload' ) );
-						/**
-						$form = new FormUI( 'habarisilouploadmedia' );
-						$form->append( FormControlStatic::create( 'RmFile' )->set_static( '<div style="margin: 10px auto;">' . _t( 'Path:' ) . " <strong>/{$path}</strong></div>" ) );
-						$form->append( FormControlData::create( 'fullpath')->set_value( $fullpath ) );
-						$form->append( FormControlData::create( 'token')->set_value( $token ) );
-						$form->append( FormControlData::create( 'token_ts')->set_value( $token_ts ) );
-						// $form->append( FormControlData::create( 'action' )->set_value( $panelname ) );
-						$form->append( FormControlData::create( 'action' )->set_value( $form_action ) );
-						$form->append( FormControlSubmit::create( 'submit' )->set_caption( _t('Upload') ) );
-						$form->media_panel( $fullpath, $panelname, 'habari.media.forceReload();' );
-						$form->on_success( array( $this, 'dir_success' ) );
-						$panel = $form->get(); // form submission magicallly happens here
-
-						return $panel;
-						break;
-						 **/
-
 						$panel .= <<< UPLOAD_FORM
 <form enctype="multipart/form-data" method="post" id="simple_upload" target="simple_upload_frame" action="{$form_action}" class="span-10" style="margin:0px auto;text-align: center">
 	<p style="padding-top:30px;">%s <b style="font-weight:normal;color: #e0e0e0;font-size: 1.2em;">/{$path}</b></p>
