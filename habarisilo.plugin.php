@@ -55,7 +55,7 @@ class HabariSilo extends Plugin implements MediaSilo
 		ACL::create_token( 'upload_media', 'Upload files to media silos', 'Administration' );
 		ACL::create_token( 'delete_media', 'Delete files from media silos', 'Administration' );
 	}
-	
+
 	/**
 	 * function filter_plugin_config
 	 * Add configuration options
@@ -65,7 +65,7 @@ class HabariSilo extends Plugin implements MediaSilo
 		$actions['configure'] = _t('Configure');
 		return $actions;
 	}
-	
+
 	public function action_plugin_ui_configure()
 	{
 		$ui = new FormUI( strtolower( get_class( $this ) ) );
@@ -87,21 +87,21 @@ class HabariSilo extends Plugin implements MediaSilo
 	public function filter_token_description_display( $token )
 	{
 		$desc = array(
-		    'create_directories' => _t( 'Create media silo directories' ),
-		    'delete_directories' => _t( 'Delete media silo directories' ),
-		    'upload_media' => _t( 'Upload files to media silos' ),
-		    'delete_media' => _t( 'Delete files from media silos' ),
+			'create_directories' => _t( 'Create media silo directories' ),
+			'delete_directories' => _t( 'Delete media silo directories' ),
+			'upload_media' => _t( 'Upload files to media silos' ),
+			'delete_media' => _t( 'Delete files from media silos' ),
 		);
 		return isset( $desc[$token] ) ? $desc[$token] : $token;
 	}
 
 	/**
-	*
-	* @param string $file. The name of the plugin file
-	*
-	* Delete the special silo permissions if they're no longer
-	* being used.
-	*/
+	 *
+	 * @param string $file. The name of the plugin file
+	 *
+	 * Delete the special silo permissions if they're no longer
+	 * being used.
+	 */
 	public function action_plugin_deactivation( $file ) {
 		$silos = Plugins::get_by_interface( 'MediaSilo' );
 		if ( count( $silos ) <= 1 ) {
@@ -238,10 +238,10 @@ class HabariSilo extends Plugin implements MediaSilo
 						// couldn't find an icon so use default
 						$thumbnail_url = $icon_url .'/default.png';
 					}
-				}	
-			}		
+				}
+			}
 		}
-				
+
 		// If the asset is an image, obtain the image dimensions
 		if ( in_array( $mimetype, array( 'image_jpeg', 'image_png', 'image_gif' ) ) ) {
 			list( $props['width'], $props['height'] ) = getimagesize( $realfile );
@@ -255,7 +255,7 @@ class HabariSilo extends Plugin implements MediaSilo
 				'filetype' => $mimetype,
 			)
 		);
-		
+
 		$asset = new MediaAsset( self::SILO_NAME . '/' . $path, false, $props );
 		if ( file_exists( $realfile ) && is_file( $realfile ) ) {
 			$asset->content = file_get_contents( $realfile );
@@ -296,17 +296,17 @@ class HabariSilo extends Plugin implements MediaSilo
 
 		// Load the image based on filetype
 		switch ( $type ) {
-		case IMAGETYPE_JPEG:
-			$src_img = imagecreatefromjpeg( $src_filename );
-			break;
-		case IMAGETYPE_PNG:
-			$src_img = imagecreatefrompng( $src_filename );
-			break;
-		case IMAGETYPE_GIF:
-			$src_img = imagecreatefromgif ( $src_filename );
-			break;
-		default:
-			return false;
+			case IMAGETYPE_JPEG:
+				$src_img = imagecreatefromjpeg( $src_filename );
+				break;
+			case IMAGETYPE_PNG:
+				$src_img = imagecreatefrompng( $src_filename );
+				break;
+			case IMAGETYPE_GIF:
+				$src_img = imagecreatefromgif ( $src_filename );
+				break;
+			default:
+				return false;
 		}
 		// Did the image fail to load?
 		if ( !$src_img ) {
@@ -520,7 +520,7 @@ class HabariSilo extends Plugin implements MediaSilo
 					$form->append( FormControlData::create( 'path' )->set_value( $path ) );
 					$form->append( FormControlData::create( 'action' )->set_value( $panelname ) );
 
-					$form->append( FormControlLabel::wrap( _t('What would you like to call the new directory?'), 
+					$form->append( FormControlLabel::wrap( _t('What would you like to call the new directory?'),
 						FormControlText::create( 'directory' )->add_validator( array( $this, 'mkdir_validator' ) ) ) );
 					$form->append( FormControlSubmit::create( 'submit' )->set_caption( _t('Submit') ) );
 					$form->media_panel($fullpath, $panelname, 'habari.media.forceReload();');
@@ -564,51 +564,83 @@ class HabariSilo extends Plugin implements MediaSilo
 					break;
 				case 'upload':
 					if ( isset( $_FILES['file'] ) ) {
-						if ( isset( $_POST['token'] ) && isset( $_POST['token_ts'] ) && self::verify_token( $_POST['token'], $_POST['token_ts'] ) ) {
-							$size = Utils::human_size( $_FILES['file']['size'] );
-							$panel .= '<div class="span-18" style="padding-top:30px;color: #e0e0e0;margin: 0px auto;"><p>' . _t( 'File: ' ) . $_FILES['file']['name'];
-							$panel .= ( $_FILES['file']['size'] > 0 ) ? "({$size})" : '';
-							$panel .= '</p>';
-
-							$path = self::SILO_NAME . '/' . preg_replace( '%\.{2,}%', '.', $path ). '/' . $_FILES['file']['name'];
-							$asset = new MediaAsset( $path, false );
-							$asset->upload( $_FILES['file'] );
-
-							if ( $asset->put() ) {
-								$msg = _t( 'File uploaded: %s', array( $_FILES['file']['name'] ) );
-								$panel .= '<p>' . $msg . '</p>';
-								EventLog::log( $msg, 'info' );
-							}
-							else {
-								$upload_errors = array(
-										1 => _t( 'The uploaded file exceeds the upload_max_filesize directive in php.ini.' ),
-										2 => _t( 'The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form.' ),
-										3 => _t( 'The uploaded file was only partially uploaded.' ),
-										4 => _t( 'No file was uploaded.' ),
-										6 => _t( 'Missing a temporary folder.' ),
-										7 => _t( 'Failed to write file to disk.' ),
-										8 => _t( 'A PHP extension stopped the file upload. PHP does not provide a way to ascertain which extension caused the file upload to stop; examining the list of loaded extensions with phpinfo() may help.' ),
-									);
-								$msg = _t( 'File upload failed: %s', array( $_FILES['file']['name'] ) );
-								$panel .= '<p>' . $msg . '</p>';
-								$panel .= '<p><strong>' . $upload_errors[ $_FILES['file']['error'] ] . '</strong></p>';
-								EventLog::log( $msg . ' ' . $upload_errors[ $_FILES['file']['error'] ], 'err' );
-							}
-
-							$panel .= '<p><a href="#" onclick="habari.media.forceReload();habari.media.showdir(\'' . dirname( $path ) . '\');">' . _t( 'Browse the current silo path.' ) . '</a></p></div>';
-						} else {
-							$panel .= '<p><strong>' ._t( 'Suspicious behaviour or too much time has elapsed.  Please upload your file again.' ) . '</strong></p>';
+						// quit if tokens missing or time elapsed
+						if (!isset( $_POST['token'] ) or !isset( $_POST['token_ts'] ) or false === self::verify_token( $_POST['token'], $_POST['token_ts'] )) {
+							$msg = _t( 'Suspicious behaviour or too much time has elapsed.  Please upload your file(s) again.' );
+							$panel .= '<p><strong>'.$msg.'</strong></p>';
+							EventLog::log( $msg , 'warn' );
+							return $panel;
+							break;
 						}
+
+						// rearrange $_FILES array so foreach loops work, maybe we should put the helper-function into core
+						$sorted_files = \Habari\HabariSilo::rearrange_files_arr($_FILES['file']);
+						// store path before we alter it - we need to reset it to make navigation in mediapanel work
+						$orig_path = $path;
+						$path = self::SILO_NAME . '/' . preg_replace('%\.{2,}%', '.', $path) . '/';
+						$panel .= '<ol>';
+						foreach($sorted_files as $file_to_upload) {
+							$size = Utils::human_size($file_to_upload['size']);
+							$path .= $file_to_upload['name'];
+							$asset = new MediaAsset($path, false);
+							$asset->upload($file_to_upload);
+							/**
+							 * $panel .= '<div class="span-18" style="padding-top:30px;color: #e0e0e0;margin: 0px auto;"><p>' . _t( 'File: ' ) . $_FILES['file']['name'];
+							 * $panel .= ( $_FILES['file']['size'] > 0 ) ? "({$size})" : '';
+							 * $panel .= '</p>';
+							 */
+
+							if ($asset->put()) {
+								$msg = _t('File uploaded: %s', array($file_to_upload['name']));
+								$panel .= '<li>' . $msg . ' ('.$size.') </li>';
+								EventLog::log($msg, 'info');
+							} else {
+								$upload_errors = array(
+									1 => _t('The uploaded file exceeds the upload_max_filesize directive in php.ini.'),
+									2 => _t('The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form.'),
+									3 => _t('The uploaded file was only partially uploaded.'),
+									4 => _t('No file was uploaded.'),
+									6 => _t('Missing a temporary folder.'),
+									7 => _t('Failed to write file to disk.'),
+									8 => _t('A PHP extension stopped the file upload. PHP does not provide a way to ascertain which extension caused the file upload to stop; examining the list of loaded extensions with phpinfo() may help.'),
+								);
+								$msg = _t('File upload failed: %s', array($file_to_upload['name']));
+								$panel .= '<li>' . $msg . '<strong>' . $upload_errors[$file_to_upload['error']] . '</strong></li>';
+								EventLog::log($msg . ' ' . $upload_errors[$file_to_upload['error']], 'err');
+							}
+						}
+						// revert to original path to make navigation in media panel work
+
+						$panel .= '</ol>';
+						$panel .= '<p><a href="#" onclick="habari.media.forceReload();habari.media.showdir(\'' . dirname( $path ) . '\');">' . _t( 'Browse the current silo path.' ) . '</a></p>';
+						$path = $orig_path;
 					}
 					else {
 						$token_ts = time();
 						$token = self::create_token( $token_ts );
 						$fullpath = self::SILO_NAME . '/' . $path;
 						$form_action = URL::get( 'admin_ajax', array( 'context' => 'media_upload' ) );
+						/**
+						$form = new FormUI( 'habarisilouploadmedia' );
+						$form->append( FormControlStatic::create( 'RmFile' )->set_static( '<div style="margin: 10px auto;">' . _t( 'Path:' ) . " <strong>/{$path}</strong></div>" ) );
+						$form->append( FormControlData::create( 'fullpath')->set_value( $fullpath ) );
+						$form->append( FormControlData::create( 'token')->set_value( $token ) );
+						$form->append( FormControlData::create( 'token_ts')->set_value( $token_ts ) );
+						// $form->append( FormControlData::create( 'action' )->set_value( $panelname ) );
+						$form->append( FormControlData::create( 'action' )->set_value( $form_action ) );
+						$form->append( FormControlSubmit::create( 'submit' )->set_caption( _t('Upload') ) );
+						$form->media_panel( $fullpath, $panelname, 'habari.media.forceReload();' );
+						$form->on_success( array( $this, 'dir_success' ) );
+						$panel = $form->get(); // form submission magicallly happens here
+
+						return $panel;
+						break;
+						 **/
+
 						$panel .= <<< UPLOAD_FORM
 <form enctype="multipart/form-data" method="post" id="simple_upload" target="simple_upload_frame" action="{$form_action}" class="span-10" style="margin:0px auto;text-align: center">
 	<p style="padding-top:30px;">%s <b style="font-weight:normal;color: #e0e0e0;font-size: 1.2em;">/{$path}</b></p>
-	<p><input type="file" name="file"><input type="submit" name="upload" value="%s">
+	<p><input type="file" name="file[]" multiple="multiple"><input type="submit" name="upload" value="%s">
 	<input type="hidden" name="path" value="{$fullpath}">
 	<input type="hidden" name="panel" value="{$panelname}">
 	<input type="hidden" name="token" value="{$token}">
@@ -632,8 +664,8 @@ function simple_uploaded_complete() {
 </script>
 UPLOAD_FORM;
 
-					$panel = sprintf( $panel, _t( "Upload to:" ), _t( "Upload" ) );
-				}
+						$panel = sprintf( $panel, _t( "Upload to:" ), _t( "Upload" ) );
+					}
 			}
 		}
 		return $panel;
@@ -650,7 +682,7 @@ UPLOAD_FORM;
 	public function mkdir_validator( $dir, $control, $form )
 	{
 		if ( strpos( $dir, '*' ) !== false || preg_match( '%(?:^|/)\.%', $dir ) ) {
-		    return array( _t( "The directory name contains invalid characters: %s.", array( $dir ) ) );
+			return array( _t( "The directory name contains invalid characters: %s.", array( $dir ) ) );
 		}
 
 		$path = preg_replace( '%\.{2,}%', '.', $form->path->value );
@@ -757,6 +789,23 @@ UPLOAD_FORM;
 		}
 	}
 
+	/**
+	 * When uploading multiple files, the FILES array is arranged in a rather strange form like
+	 * FILES['name'][0] but for use in loops a form like FILES[0]['name'] is easier to process
+	 * this functions rearranges the array, see also
+	 * http://php.net/manual/en/features.file-upload.multiple.php#106565
+	 *
+	 * @param $array arr
+	 * @return array $new
+	 */
+	private function rearrange_files_arr( $arr ){
+		foreach( $arr as $key => $all ){
+			foreach( $all as $i => $val ){
+				$new[$i][$key] = $val;
+			}
+		}
+		return $new;
+	}
 }
 
 ?>
